@@ -23,18 +23,16 @@ class customer {
 public:
     customer() : l_amt(0), l_term(0), C_score(0), ROI(0), repay_time(0), decision('R') {}
 
-    // Initialize c_id from file
     static void initialize_id() {
         ifstream id_file("last_id.txt");
         if (id_file.is_open()) {
             id_file >> c_id;
             id_file.close();
         } else {
-            c_id = 100; // Default starting value if file doesn't exist
+            c_id = 100;
         }
     }
 
-    // Save the last ID to file
     static void save_last_id() {
         ofstream id_file("last_id.txt");
         if (id_file.is_open()) {
@@ -45,7 +43,6 @@ public:
         }
     }
 
-    // Input customer details
     void input() {
         cin.ignore();
         cout << "Enter the Name of the customer: ";
@@ -65,11 +62,10 @@ public:
         c_id++;
         cout << "Customer ID generated: " << c_id << endl;
 
-        save_last_id(); // Update the last ID in the file
-        save_to_file(); // Save customer details to a file
+        save_last_id();
+        save_to_file();
     }
 
-    // Save customer details to a file
     void save_to_file() {
         ofstream out_file("customer.txt", ios::app);
         if (out_file.is_open()) {
@@ -88,8 +84,8 @@ public:
         }
     }
 
-    // Loan application
     void loan_apply() {
+        cout<< "\n==========LOAN DETAILS==========\n";
         cout << "Enter the Amount for Loan: ";
         cin >> l_amt;
         cin.ignore();
@@ -104,7 +100,6 @@ public:
         getline(cin, Pan);
     }
 
-    // Calculate credit score
     int calculate_credit_score(string profession, double salary) {
         int base_score = 500;
         if (profession == "government" || profession == "Government") {
@@ -127,10 +122,9 @@ public:
             base_score -= 50;
         }
 
-        return min(max(base_score, 300), 900); // Ensure score is between 300 and 900
+        return min(max(base_score, 300), 900);
     }
 
-    // Loan approval process
     void approved_or_not() {
         C_score = calculate_credit_score(prof, sal);
         cout << "Credit Score --> ";
@@ -173,17 +167,17 @@ public:
         }
     }
 
-    // Calculate and display EMIs
     void Emis() {
         if (decision == 'A' || decision == 'a') {
+            cout<<"\n========For EMI========\n";
             cout << "Enter Rate of Interest (in %): ";
             cin >> ROI;
             cout << "Enter repayment time (in years): ";
             cin >> repay_time;
 
-            int si = (l_amt * ROI * l_term) / 100; // Simple interest
-            int total = l_amt + si; // Total payable amount
-            int emi_amt = total / (repay_time * 12); // Monthly EMI
+            int si = (l_amt * ROI * l_term) / 100;
+            int total = l_amt + si;
+            int emi_amt = total / (repay_time * 12);
 
             cout << "\nLoan Details:\n";
             cout << "Loan Amount: " << l_amt << endl;
@@ -196,7 +190,6 @@ public:
         }
     }
 
-    // Display all customers from file
     static void display_all() {
         ifstream in_file("customer.txt");
         if (in_file.is_open()) {
@@ -211,7 +204,6 @@ public:
         }
     }
 
-    // Display all approved loans
     static void display_Loan() {
         ifstream in_file("approved_loans.txt");
         if (in_file.is_open()) {
@@ -229,8 +221,37 @@ public:
 
 int customer::c_id = 100;
 
+//Function for password masking
+string get_password() {
+    string password = "";
+#ifdef _WIN32
+    char ch;
+    while ((ch = _getch()) != '\r') {
+        if (ch == '\b') {
+            if (!password.empty()) {
+                password.pop_back();
+                cout << "\b \b";
+            }
+        } else {
+            password += ch;
+            cout << '*';
+        }
+    }
+#else
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    getline(cin, password);
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+#endif
+    cout << endl;
+    return password;
+}
+
 int main() {
-    customer::initialize_id(); // Initialize the customer ID from file
+    customer::initialize_id();
 
     int a_id, pass;
     int count = 0, ch;
@@ -245,7 +266,9 @@ int main() {
             cout << "Admin ID: ";
             cin >> a_id;
             cout << "Password: ";
-            cin >> pass;
+            string password_input = get_password();
+            pass = stoi(password_input);
+
             if (a_id == id && pass == passwrd) {
                 cout << "Login successful!\n";
                 break;
@@ -259,37 +282,33 @@ int main() {
         }
     } while (true);
 
+    customer c1;
     do {
-        cout << "\nMAIN MENU\n";
-        cout << "1. Add Customer\n";
-        cout << "2. Display All Customers\n";
-        cout << "3. Display Loan Records\n";
-        cout << "4. Exit\n";
-        cout << "Enter Your Choice: ";
+        cout << "\n1. Add Customer\n2. Display all customer records\n3. Display Loan Records\n4. Exit\n";
+        cout << "Enter choice: ";
         cin >> ch;
 
         switch (ch) {
-            case 1: {
-                customer new_customer;
-                new_customer.input();
-                new_customer.loan_apply();
-                new_customer.approved_or_not();
-                new_customer.Emis();
-                break;
-            }
-            case 2:
-                customer::display_all();
-                break;
-            case 3:
-                customer::display_Loan();
-                break;
-            case 4:
-                cout << "Exiting. Thank you!\n";
-                break;
-            default:
-                cout << "Invalid choice. Try again.\n";
+        case 1:
+            c1.input();
+            c1.loan_apply();
+            c1.approved_or_not();
+            c1.Emis();
+            break;
+        case 2:
+            customer::display_all();
+            break;
+        case 3:
+            customer::display_Loan();
+            break;
+        case 4:
+            cout << "THANK YOU!!\nExiting...\n";
+            exit(0);
+            break;
+        default:
+            cout << "Invalid Input\n";
         }
-    } while (ch != 4);
+    } while (true);
 
     return 0;
 }
